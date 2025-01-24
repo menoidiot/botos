@@ -1,5 +1,6 @@
 import boto3
 import argparse
+import botocore.exceptions
 
 def check_ec2_instances(security_group_id, session):
     ec2 = session.client('ec2')
@@ -58,6 +59,24 @@ def check_lambda_functions(security_group_id, session):
             results.append(function['FunctionName'])
     return results
 
+def validate_profile_and_sg(profile_name, security_group_id):
+    try:
+        session = boto3.Session(profile_name=profile_name)
+        ec2 = session.client('ec2')
+
+        # Validate the security group exists
+        ec2.describe_security_groups(GroupIds=[security_group_id])
+        return session
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == 'InvalidGroup.NotFound':
+            print(f"Error: Security Group {security_group_id} does not exist.")
+        else:
+            print(f"Error: {e.response['Error']['Message']}")
+        exit(1)
+    except botocore.exceptions.ProfileNotFound as e:
+        print(f"Error: AWS profile '{profile_name}' not found.")
+        exit(1)
+
 def main():
     parser = argparse.ArgumentParser(description="Check resources associated with a specific AWS Security Group.")
     parser.add_argument('--profile', required=True, help="AWS profile name")
@@ -67,7 +86,7 @@ def main():
     profile_name = args.profile
     security_group_id = args.sg
 
-    session = boto3.Session(profile_name=profile_name)
+    session = validate_profile_and_sg(profile_name, security_group_id)
 
     print(f"Checking resources associated with Security Group: {security_group_id}\n")
 
