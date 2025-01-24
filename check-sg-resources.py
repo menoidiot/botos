@@ -90,30 +90,47 @@ def main():
 
     print(f"Checking resources associated with Security Group: {security_group_id}\n")
 
+    resource_counts = {
+        'EC2 Instances': 0,
+        'Network Interfaces': 0,
+        'Load Balancers': 0,
+        'RDS Instances': 0,
+        'Lambda Functions': 0
+    }
+
     print("EC2 Instances:")
     ec2_instances = check_ec2_instances(security_group_id, session)
+    resource_counts['EC2 Instances'] = len(ec2_instances)
     for instance in ec2_instances:
         print(instance)
 
     print("\nNetwork Interfaces:")
     network_interfaces = check_network_interfaces(security_group_id, session)
+    resource_counts['Network Interfaces'] = len(network_interfaces)
     for interface in network_interfaces:
         print(interface)
 
     print("\nLoad Balancers:")
     load_balancers = check_load_balancers(security_group_id, session)
+    resource_counts['Load Balancers'] = len(load_balancers)
     for lb in load_balancers:
         print(lb)
 
     print("\nRDS Instances:")
     rds_instances = check_rds_instances(security_group_id, session)
+    resource_counts['RDS Instances'] = len(rds_instances)
     for db in rds_instances:
         print(db)
 
     print("\nLambda Functions:")
     lambda_functions = check_lambda_functions(security_group_id, session)
+    resource_counts['Lambda Functions'] = len(lambda_functions)
     for function in lambda_functions:
         print(function)
+
+    print("\nSummary of Resources:")
+    for resource, count in resource_counts.items():
+        print(f"{resource}: {count}")
 
 if __name__ == "__main__":
     main()
